@@ -6,14 +6,15 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import static bcsdbeginner.jdbc.DBConnection.DBConnectionConstant.*;
-
+import static bcsdbeginner.jdbc.DBConnection.DBConnectionConst.*;
 @Slf4j
 public class DBConnectionManager {
-    public static Connection getConnection() throws SQLException {
+
+    //connection 가져오기
+    public static Connection getConnection() {
         try {
             Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            log.info("connection={}", connection);
+            log.info("connection={}", connection); // mySql jdbc 드라이버가 들어갔는지 확인
             return connection;
         } catch (SQLException e) {
             throw new RuntimeException(e);

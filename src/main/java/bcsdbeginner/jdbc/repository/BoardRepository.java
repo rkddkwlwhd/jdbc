@@ -1,7 +1,7 @@
 package bcsdbeginner.jdbc.repository;
 
 import bcsdbeginner.jdbc.DBConnection.DBConnectionManager;
-import bcsdbeginner.jdbc.Domain.User;
+import bcsdbeginner.jdbc.Domain.Board;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
@@ -12,103 +12,122 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Slf4j
-public class UserRepository {
-    public Integer save(User user) {
+public class BoardRepository {
+    public Board createboard(Board board) throws SQLException
+    {
         Connection connection = null;
         PreparedStatement statement = null; //statement 대신 사용
-        String sql = "insert into users values(?,?,?,?,?)"; // user table의 컬럼이 5개
+        String sql = "insert into board values(?,?,?,?,?,?)";
 
         try {
             connection = DBConnectionManager.getConnection(); // connection 얻어옴
             statement = connection.prepareStatement(sql); // statement를 얻어옴
-            log.info("statement={}", statement);
 
-            statement.setInt(1, user.getId());
-            statement.setString(2, user.getUsername());
-            statement.setString(3, user.getEmail());
-            statement.setString(4, user.getPassword());
-            statement.setString(5, user.getCreated_at().toString());
+            statement.setInt(1, board.getId());
+            statement.setInt(2, board.getUser_id());
+            statement.setInt(3, board.getCategory_id());
+            statement.setString(4, board.getTitle());
+            statement.setString(5, board.getContent());
+            statement.setString(6, board.getCreated_at().toString());
             statement.executeUpdate();
 
-            return user.getId();
-        } catch (SQLException e) {
+            return board;
+        } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            closeResource(connection, statement, null); //사용한 리소스 반환
+            closeResource(connection, statement, null); // 역순 종료
         }
     }
 
-    public User findById(Integer id) {
+    public Board findById(Integer boardId) throws SQLException
+    {
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
-        String sql = "select * from users where id = ?";
 
-        try {
+        String sql = "select * from board where id = ?";
+        try
+        {
             connection = DBConnectionManager.getConnection();
             statement = connection.prepareStatement(sql);
-            log.info("statement={}", statement);
+            log.info("statement = {}", statement);
 
-            statement.setInt(1, id);
+            statement.setInt(1, boardId);
             resultSet = statement.executeQuery();
 
-            User findUser = new User();
-            while (resultSet.next()) {
-                findUser.setId(resultSet.getInt("id"));
-                findUser.setUsername((resultSet.getString("username")));
-                findUser.setEmail(resultSet.getString("email"));
-                findUser.setPassword(resultSet.getString("password"));
+            Board findBoard = new Board();
+            while(resultSet.next())
+            {
+                findBoard.setId(resultSet.getInt("id"));
+                findBoard.setUser_id(resultSet.getInt("user_id"));
+                findBoard.setCategory_id(resultSet.getInt("category_id"));
+                findBoard.setTitle(resultSet.getString("title"));
+                findBoard.setContent(resultSet.getString("content"));
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                findUser.setCreated_at(LocalDateTime.parse(resultSet.getString("created_at"), formatter));
+                findBoard.setCreated_at(LocalDateTime.parse(resultSet.getString("created_at"), formatter));
             }
-            return findUser;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            closeResource(connection, statement, null); //사용한 리소스 반환
+            return findBoard;
         }
-
-
-    }
-
-    public void updateUsername(Integer id, String username) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        String sql = "update users set username = ? where id = ?";
-
-        try {
-            connection = DBConnectionManager.getConnection();
-            statement = connection.prepareStatement(sql);
-
-            statement.setString(1, username);
-            statement.setInt(2, id);
-
-            statement.executeUpdate();
-
-        } catch (SQLException e) {
+        catch(Exception e)
+        {
             throw new RuntimeException(e);
-        } finally {
-            closeResource(connection, statement, null); //사용한 리소스 반환
+        }
+        finally
+        {
+            closeResource(connection, statement, null);
         }
     }
 
-    public void deleteUser(Integer id) {
+    public void updateTitle(Integer boardId, String title)
+    {
         Connection connection = null;
         PreparedStatement statement = null;
-        String sql = "delete from users where id = ?";
 
-        try {
+        String sql = "update board set title = ? where id = ?";
+        try
+        {
             connection = DBConnectionManager.getConnection();
             statement = connection.prepareStatement(sql);
+            log.info("statement = {}", statement);
 
-            statement.setInt(1, id);
+            statement.setString(1, title);
+            statement.setInt(2, boardId);
 
             statement.executeUpdate();
-
-        } catch (SQLException e) {
+        }
+        catch(Exception e)
+        {
             throw new RuntimeException(e);
-        } finally {
-            closeResource(connection, statement, null); //사용한 리소스 반환
+        }
+        finally
+        {
+            closeResource(connection, statement, null);
+        }
+    }
+
+    public void deleteBoard(Integer boardId)
+    {
+        Connection connection = null;
+        PreparedStatement statement = null;
+
+        String sql = "delete from board where id = ?";
+        try
+        {
+            connection = DBConnectionManager.getConnection();
+            statement = connection.prepareStatement(sql);
+            log.info("statement = {}", statement);
+
+            statement.setInt(1, boardId);
+
+            statement.executeUpdate();
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+        finally
+        {
+            closeResource(connection, statement, null);
         }
     }
     private void closeResource(Connection connection, PreparedStatement statement, ResultSet resultSet) {
@@ -134,5 +153,4 @@ public class UserRepository {
             }
         }
     }
-
 }
